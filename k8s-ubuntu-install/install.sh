@@ -17,12 +17,14 @@ sudo systemctl disable ufw.service
 ########################################
 echo '> Letting iptables see bridged traffic ...'
 test -e /etc/modules-load.d/k8s.conf || cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+overlay
 br_netfilter
 EOF
 
 test -e /etc/sysctl.d/k8s.conf || cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward                 = 1
 EOF
 
 sudo sysctl --system
@@ -37,32 +39,32 @@ sudo apt-get -o DPkg::Lock::Timeout=${DPKG_LOCK_TIMOUT} install -y apt-transport
 ####################################
 # Configures Containerd #
 ####################################
-# echo '> Configure Containerd ...'
-# sudo test -d /etc/containerd || sudo mkdir /etc/containerd
-# sudo test -e /etc/containerd/config.toml || sudo cat > /etc/containerd/config.toml <<EOF
-# disabled_plugins = ["cri"]
+echo '> Configure Containerd ...'
+sudo test -d /etc/containerd || sudo mkdir /etc/containerd
+sudo test -e /etc/containerd/config.toml || sudo cat > /etc/containerd/config.toml <<EOF
+disabled_plugins = ["cri"]
 
-# [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
-  
-#   [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
-#     SystemdCgroup = true
-# EOF
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+
+  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+    SystemdCgroup = true
+EOF
 
 #################
 # Install Docker#
 #################
-# echo '> Configure Docker ...'
-# sudo test -d /etc/docker || sudo mkdir /etc/docker
-# sudo cat <<EOF | sudo tee /etc/docker/daemon.json
-# {
-#   "exec-opts": ["native.cgroupdriver=systemd"],
-#   "log-driver": "json-file",
-#   "log-opts": {
-#     "max-size": "100m"
-#   },
-#   "storage-driver": "overlay2"
-# }
-# EOF
+echo '> Configure Docker ...'
+sudo test -d /etc/docker || sudo mkdir /etc/docker
+sudo cat <<EOF | sudo tee /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
 
 ##############################
 ## Set up stable repository ##
