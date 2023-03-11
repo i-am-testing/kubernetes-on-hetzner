@@ -23,6 +23,9 @@ test -e /etc/modules-load.d/k8s.conf || cat <<EOF | tee /etc/modules-load.d/k8s.
 overlay
 br_netfilter
 EOF
+modprobe overlay
+modprobe br_netfilter
+
 test -e /etc/sysctl.d/k8s.conf || cat <<EOF | tee /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
@@ -68,8 +71,6 @@ apt-get -o DPkg::Lock::Timeout=${DPKG_LOCK_TIMOUT} install -y \
   p7zip-full \
   software-properties-common \
   wget
-
-
 
 ############################################
 # Add  apt repository signing key
