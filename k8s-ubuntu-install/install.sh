@@ -68,7 +68,7 @@ apt-get -o DPkg::Lock::Timeout=${DPKG_LOCK_TIMOUT} install -y \
   p7zip-full \
   software-properties-common \
   wget
-apt purge -y lxd lxd-client snapd
+
 
 
 ############################################
